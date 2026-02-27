@@ -3,7 +3,7 @@ import argparse
 import shutil
 
 # Hardcoded directory to search in
-SEARCH_DIRECTORY = r"C:\SCIPE\extracted_txt"  # Change this to your desired directory path
+SEARCH_DIRECTORY = r"C:\SCIPE\HCDP-data-for-AI\HCDP_PublicationScraper\downloads"  # Change this to your desired directory path
 
 def search_files(substring, directory):
     """

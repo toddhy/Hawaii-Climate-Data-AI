@@ -18,24 +18,42 @@ def main():
     parser.add_argument("source_dir", help="Path to the folder containing your PDFs")
     parser.add_argument("--start", type=int, default=0, help="Index of the first PDF to process (0-indexed, default: 0)")
     parser.add_argument("--count", type=int, help="Number of PDFs to process (default: all files from start index)")
+    parser.add_argument("--filename", "-f", help="Specific PDF filename to process (overrides --start and --count)")
     
     args = parser.parse_args()
     source_dir = args.source_dir
 
-    # Get and sort all PDF files in the folder
-    all_files = sorted([f for f in os.listdir(source_dir) if f.lower().endswith(".pdf")])
-    
-    if not all_files:
-        print(f"No PDF files found in '{source_dir}'.")
-        return
+    if args.filename:
+        # If a specific filename is provided, use only that file
+        filename = args.filename
+        if not filename.lower().endswith(".pdf"):
+            filename += ".pdf"
+        
+        full_path = os.path.join(source_dir, filename)
+        if not os.path.exists(full_path):
+            print(f"❌ Error: File '{filename}' not found in '{source_dir}'.")
+            return
+        
+        files_to_process = [filename]
+        all_files = [filename] # For the summary print below
+        start_msg = f"▶️ Processing specific file: {filename}"
+    else:
+        # Get and sort all PDF files in the folder
+        all_files = sorted([f for f in os.listdir(source_dir) if f.lower().endswith(".pdf")])
+        
+        if not all_files:
+            print(f"No PDF files found in '{source_dir}'.")
+            return
 
-    # Slice the list based on start and count
-    end_index = args.start + args.count if args.count is not None else None
-    files_to_process = all_files[args.start : end_index]
+        # Slice the list based on start and count
+        end_index = args.start + args.count if args.count is not None else None
+        files_to_process = all_files[args.start : end_index]
 
-    if not files_to_process:
-        print(f"No files to process for start index {args.start} and count {args.count}.")
-        return
+        if not files_to_process:
+            print(f"No files to process for start index {args.start} and count {args.count}.")
+            return
+        
+        start_msg = f"▶️ Starting from index {args.start}. Processing {len(files_to_process)} file(s)."
 
     # Define where to save the results
     output_dir = os.path.join(source_dir, "marker_output")
@@ -43,8 +61,9 @@ def main():
     # Ensure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
 
-    print(f"\n📂 Found {len(all_files)} total PDF(s).")
-    print(f"▶️ Starting from index {args.start}. Processing {len(files_to_process)} file(s).")
+    if not args.filename:
+        print(f"\n📂 Found {len(all_files)} total PDF(s).")
+    print(start_msg)
 
     # Loop through the subset of files
     for filename in files_to_process:
