@@ -1,10 +1,21 @@
 # HCDP-data-for-AI
 Analyzing data from the Hawaii Climate Data Portal.
 
-Link to HCDP publications pdfs (where scraper can be used):
-https://www.hawaii.edu/climate-data-portal/publications-list/
+## Project Highlights
 
-Links to additional works cited pdfs:
-https://scholar.google.com/scholar?oi=bibs&hl=en&cites=15630183130413266936&as_sdt=5
-https://scholar.google.com/scholar?start=10&hl=en&as_sdt=2005&sciodt=0,5&cites=1400056456419797457&scipsc=
-https://scholar.google.com/scholar?oi=bibs&hl=en&cites=11258593421370337345&as_sdt=5
+### Gemini Chatbot Automation
+We've integrated a Gemini 2.0 Flash powered chatbot that can:
+- **Execute Local Scripts**: Trigger data fetching and mapping directly from natural language.
+- **Inferred Geolocation**: Understand place names (like "Honolulu") and automatically provide coordinates to data scripts.
+- **Batch Processing**: Handle complex workflows like "fetch data for Hilo and then map it".
+
+### HCDP API Tools
+A suite of tools located in `HCDP_API/` for:
+- Finding weather stations within a specific radius.
+- Fetching historical rainfall timeseries data.
+- Batch downloading rainfall TIFF rasters.
+- Creating interactive rainfall distribution maps.
+
+## Useful Links
+- [HCDP Publication List](https://www.hawaii.edu/climate-data-portal/publications-list/)
+- [Additional Works Cited (Scholar)](https://scholar.google.com/scholar?oi=bibs&hl=en&cites=15630183130413266936&as_sdt=5)

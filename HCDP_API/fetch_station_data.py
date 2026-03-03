@@ -31,7 +31,7 @@ def fetch_rainfall_data(lat, lon):
     # Parameters based on your CURL example
     params = {
         'location': 'hawaii',
-        'start': '2008-01',
+        'start': '2021-01',
         'end': '2022-12',
         'lat': lat,
         'lng': lon,
@@ -62,6 +62,15 @@ def fetch_rainfall_data(lat, lon):
         return {"error": "Exception", "detail": str(e)}
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Fetch rainfall data for stations near a location.")
+    parser.add_argument("lat", type=float, nargs='?', default=TARGET_LAT, help=f"Latitude (default: {TARGET_LAT})")
+    parser.add_argument("lon", type=float, nargs='?', default=TARGET_LON, help=f"Longitude (default: {TARGET_LON})")
+    parser.add_argument("radius", type=float, nargs='?', default=RADIUS_KM, help=f"Radius in km (default: {RADIUS_KM})")
+    parser.add_argument("--output", type=str, default=OUTPUT_FILE, help=f"Output JSON file (default: {OUTPUT_FILE})")
+    
+    args = parser.parse_args()
+
     # 0. Check for API Token
     if not AUTH_TOKEN:
         print("Error: HCDP_API_TOKEN environment variable is not set.")
@@ -69,8 +78,8 @@ def main():
         return
 
     # 1. Get the list of stations from our station_finder module
-    print(f"Searching for stations within {RADIUS_KM}km of ({TARGET_LAT}, {TARGET_LON})...")
-    stations_df = get_nearby_stations(TARGET_LAT, TARGET_LON, RADIUS_KM)
+    print(f"Searching for stations within {args.radius}km of ({args.lat}, {args.lon})...")
+    stations_df = get_nearby_stations(args.lat, args.lon, args.radius)
     
     if stations_df.empty:
         print("No stations found in range.")
@@ -110,8 +119,8 @@ def main():
         time.sleep(0.5)
 
     # 3. Write everything to a file
-    print(f"Saving results to {OUTPUT_FILE}...")
-    with open(OUTPUT_FILE, "w") as f:
+    print(f"Saving results to {args.output}...")
+    with open(args.output, "w") as f:
         json.dump(all_results, f, indent=4)
         
     print("Done! You can now check the output file.")
