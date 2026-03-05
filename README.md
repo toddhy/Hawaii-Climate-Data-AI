@@ -14,6 +14,7 @@ A suite of tools located in `HCDP_API/` for:
 - Finding weather stations within a specific radius.
 - Fetching historical rainfall timeseries data.
 - Batch downloading rainfall TIFF rasters.
+- Creating unified maps with both station points and gridded rainfall overlays.
 - Creating interactive rainfall distribution maps.
 
 ## Useful Links

@@ -91,6 +91,8 @@ def run_chatbot():
                Args: [lat] [lon] [radius_km]. Example: 19.7 -155.1 5
             2. 'HCDP_API/average_rainfall_map.py': Generates an HTML map.
                No args required.
+            3. 'HCDP_API/tiff_visualizer.py': Creates a gridded map from TIFF files.
+               Args: Optional --input_dir. Example: --input_dir downloads
             
             GEOLOCATION INFERENCE:
             - If a user mentions a place name (e.g., 'Honolulu', 'Hilo', 'Manoa') without coordinates, you MUST infer the correct latitude and longitude for that location yourself and provide them as arguments to `fetch_station_data.py`.
@@ -98,7 +100,8 @@ def run_chatbot():
             
             WORKFLOW:
             - When asked to 'fetch', 'download', or 'get' data for a location, call 'HCDP_API/fetch_station_data.py'.
-            - When asked to 'map', 'average', or 'visualize', call 'HCDP_API/average_rainfall_map.py'.
+            - When asked to 'map', 'average', or 'visualize stations', call 'HCDP_API/average_rainfall_map.py'.
+            - When asked to 'visualize TIFFs', 'create raster map', or 'show gridded rainfall', call 'HCDP_API/tiff_visualizer.py'.
             - If a user asks for both, perform them sequentially.
             """
         )
@@ -109,6 +112,7 @@ def run_chatbot():
     print("Available scripts (path from root):")
     print(" - HCDP_API/fetch_station_data.py [lat] [lon] [radius]")
     print(" - HCDP_API/average_rainfall_map.py")
+    print(" - HCDP_API/tiff_visualizer.py [--input_dir DIR]")
     print("Type 'exit' or 'quit' to end the session.\n")
 
     history_with_files = False

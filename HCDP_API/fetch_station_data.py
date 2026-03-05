@@ -31,7 +31,7 @@ def fetch_rainfall_data(lat, lon):
     # Parameters based on your CURL example
     params = {
         'location': 'hawaii',
-        'start': '2021-01',
+        'start': '2008-01',
         'end': '2022-12',
         'lat': lat,
         'lng': lon,

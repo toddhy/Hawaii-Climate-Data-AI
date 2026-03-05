@@ -13,8 +13,16 @@ Uses `station_finder.py` to identify nearby stations and سپس fetches monthly 
 - **Arguments**: Optional positional arguments for Latitude, Longitude, and Radius (km).
 
 ### [tiff_downloader.py](tiff_downloader.py)
-A batch downloader for HCDP rainfall TIFF rasters. iterates through a specified date range and saves files as `YYYY-MM.tiff`.
+A batch downloader for HCDP rainfall TIFF rasters. Iterates through a specified date range and saves files as `YYYY-MM.tiff`.
 - **Usage**: `python tiff_downloader.py start_date end_date` (e.g., `2008-01 2022-12`)
+
+### [tiff_visualizer.py](tiff_visualizer.py)
+Creates an aggregate, colored rainfall map from a directory of TIFF files. It averages the raster data and generates a Folium map with an image overlay.
+- **Usage**: `python tiff_visualizer.py [--input_dir DIR]`
+
+### [unified_rainfall_map.py](unified_rainfall_map.py)
+The ultimate visualization tool. Combines both weather station markers (from JSON) and the aggregate rainfall raster (from TIFFs) onto a single interactive map. 
+- **Usage**: `python unified_rainfall_map.py`
 
 ### [map_HCDP_stations.py](map_HCDP_stations.py)
 Takes the JSON output from `fetch_station_data.py` and generates an interactive Folium map (`station_map.html`) showing the locations of all identified stations with clickable popups.
