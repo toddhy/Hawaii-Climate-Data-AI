@@ -104,36 +104,41 @@ def map_nearby_stations(latitude: float, longitude: float, radius_km: float = 10
         return f"Error creating map: {str(e)}"
 
 @tool
-def generate_gridded_rainfall_map(latitude: float, longitude: float, radius_km: float = 10.0, use_existing_rainfall_data: bool = False) -> str:
+def generate_gridded_map(latitude: float = 20.5, longitude: float = -157.5, radius_km: float = 10.0, use_existing_rainfall_data: bool = False, add_stations: bool = False, statewide: bool = False, data_type: str = 'rainfall') -> str:
     """
-    Generates a unified rainfall map with a gridded raster overlay and station markers.
-    The raster data is aggregated from local TIFF files. 
+    Generates a unified HCDP map with a gridded raster overlay and optional station markers.
+    The raster data is aggregated from local TIFF files in 'monthly_rainfall' or 'monthly_temperature'.
     If use_existing_rainfall_data is True, it tries to use 'station_rainfall_data.json' for colored markers.
-    Otherwise, it fetches just station locations (grey markers) and combines them with the raster overlay.
-    Useful when the user wants a detailed rainfall visualization with both markers and grids.
+    If add_stations is True, it adds markers to the map. By default, it is False.
+    If statewide is True, it maps the entire state of Hawaii, ignoring radius clipping.
+    data_type can be 'rainfall' or 'temperature' (default: 'rainfall').
+    Useful when the user wants to visualize rainfall or temperature patterns.
     """
     if create_unified_map is None:
         return "Error: Unified mapping utility not found."
     
-    output_file = "gridded_rainfall_map.html"
+    output_file = f"unified_{data_type}_map.html"
     try:
         # Use absolute paths for reliability
         json_path = os.path.join(HCDP_API_DIR, "station_rainfall_data.json") if use_existing_rainfall_data else None
-        tiff_dir = os.path.join(HCDP_API_DIR, "downloads")
+        # tiff_dir will be handled by create_unified_map defaults if None
         output_file_abs = os.path.join(PROJECT_ROOT, output_file)
 
         create_unified_map(
             json_path=json_path,
-            tiff_dir=tiff_dir,
+            tiff_dir=None, # Let it use defaults based on data_type
             output_file=output_file_abs,
             center_lat=latitude,
             center_lon=longitude,
             radius_km=radius_km,
-            omit_json_data=not use_existing_rainfall_data
+            omit_json_data=not use_existing_rainfall_data,
+            add_stations=add_stations,
+            statewide=statewide,
+            data_type=data_type
         )
-        return f"Gridded rainfall map generated successfully: {output_file_abs}"
+        return f"Unified {data_type} map generated successfully: {output_file_abs}"
     except Exception as e:
-        return f"Error creating gridded map: {str(e)}"
+        return f"Error creating unified map: {str(e)}"
 
 # 3. Simple Tool-Calling Loop (Modern Pattern)
 def run_agent():
@@ -150,8 +155,9 @@ def run_agent():
     )
 
     # Bind tools to the LLM
-    tools = [geocode_placename, find_nearby_stations, map_nearby_stations, generate_gridded_rainfall_map]
+    tools = [geocode_placename, find_nearby_stations, map_nearby_stations, generate_gridded_map]
     llm_with_tools = llm.bind_tools(tools)
+
     
     # Simple message history
     messages = []
@@ -182,8 +188,9 @@ def run_agent():
                         "geocode_placename": geocode_placename,
                         "find_nearby_stations": find_nearby_stations,
                         "map_nearby_stations": map_nearby_stations,
-                        "generate_gridded_rainfall_map": generate_gridded_rainfall_map
+                        "generate_gridded_map": generate_gridded_map
                     }
+
                     selected_tool = tool_map[tool_call["name"]]
                     
                     # Execute tool

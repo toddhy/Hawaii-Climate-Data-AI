@@ -14,3 +14,5 @@ station_rainfall_data.json
 *.png
 *.tiff
 HCDP_API/__init__.py
+monthly_rainfall
+monthly_temperature

@@ -164,11 +164,31 @@ def process_tiffs(tiff_dir):
     
     return aggregated_data, folium_bounds, meta
 
-def create_unified_map(json_path, tiff_dir, output_file, center_lat=None, center_lon=None, radius_km=None, omit_json_data=False):
+def create_unified_map(json_path, tiff_dir=None, output_file=OUTPUT_MAP, center_lat=None, center_lon=None, radius_km=None, omit_json_data=False, add_stations=False, statewide=False, data_type='rainfall'):
+
+
+
     """
     Creates a map with both raster overlay and station markers.
     """
-    print("Loading data...")
+    print(f"Loading {data_type} data...")
+    
+    # Set default tiff_dir based on data_type if not provided
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if tiff_dir is None:
+        if data_type == 'temperature':
+            tiff_dir = os.path.join(script_dir, "monthly_temperature")
+        else:
+            tiff_dir = os.path.join(script_dir, "monthly_rainfall")
+
+    # Handle json_path default if it's the standard filename
+    if json_path == DEFAULT_JSON:
+        json_path = os.path.join(script_dir, DEFAULT_JSON)
+
+    if not os.path.exists(tiff_dir):
+        print(f"Warning: Directory '{tiff_dir}' does not exist.")
+
+
     
     # 1. Background context for center/radius if not provided
     # Fallback default (Honolulu)
@@ -192,8 +212,17 @@ def create_unified_map(json_path, tiff_dir, output_file, center_lat=None, center
     else:
         center = [default_lat, default_lon]
 
+    if statewide and not (center_lat and center_lon):
+        if raster_bounds:
+            center = [(raster_bounds[0][0] + raster_bounds[1][0]) / 2, (raster_bounds[0][1] + raster_bounds[1][1]) / 2]
+        else:
+            center = [20.4, -157.4] # General Hawaii maritime center
+
     if radius_km is None:
-        if stations_with_data:
+        if statewide:
+            radius_km = 500.0 # Large enough for all islands
+        elif stations_with_data:
+
             distances = [haversine_dist(center[0], center[1], s['lat'], s['lon']) for s in stations_with_data]
             radius_km = max(distances) * 1.1 if distances else 10.0
         else:
@@ -210,16 +239,23 @@ def create_unified_map(json_path, tiff_dir, output_file, center_lat=None, center
         print("No data found to map (Stations or Raster).")
         return
 
-    print(f"Masking raster to {radius_km:.2f}km radius around {center}...")
+    print(f"Masking raster to {radius_km:.2f}km radius around {center}...") if not statewide else print("Statewide mode: skipping raster masking.")
     
-    m = folium.Map(location=center, zoom_start=9, tiles='cartodbpositron')
+    zoom = 7 if statewide else 9
+    m = folium.Map(location=center, zoom_start=zoom, tiles='cartodbpositron')
 
     # Mask the raster data
-    if raster_data is not None:
+    if raster_data is not None and not statewide:
         raster_data = mask_raster_to_circle(raster_data, raster_meta, center[0], center[1], radius_km)
 
-    # Define Unified Colormap based on LOCAL range
-    colors = ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#084594']
+
+    # Define Unified Colormap based on data type and LOCAL range
+    if data_type == 'temperature':
+        colors = ['#ffffcc', '#ffeb99', '#ffcc66', '#ff9933', '#ff6600', '#ff3300', '#cc0000', '#990000']
+        caption = "Average Monthly Temperature (°C)"
+    else:
+        colors = ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#084594']
+        caption = "Average Monthly Rainfall (mm)"
     
     # Calculate LOCAL range for normalization
     vals = []
@@ -241,8 +277,8 @@ def create_unified_map(json_path, tiff_dir, output_file, center_lat=None, center
     else:
         vmin, vmax = min(vals), max(vals)
 
-    print(f"Color range (relative): {vmin:.2f} to {vmax:.2f} mm")
-    colormap = branca.colormap.LinearColormap(colors=colors, vmin=vmin, vmax=vmax, caption="Average Monthly Rainfall (mm)")
+    print(f"Color range (relative): {vmin:.2f} to {vmax:.2f}")
+    colormap = branca.colormap.LinearColormap(colors=colors, vmin=vmin, vmax=vmax, caption=caption)
 
     # 1. Add Raster Overlay
     if raster_data is not None:
@@ -256,15 +292,17 @@ def create_unified_map(json_path, tiff_dir, output_file, center_lat=None, center
         ImageOverlay(image="temp_unified.png", bounds=raster_bounds, opacity=0.6, interactive=True, zindex=1).add_to(m)
 
     # 2. Add Station Markers
-    if final_stations:
+    if add_stations and final_stations:
+
         print(f"Adding {len(final_stations)} station markers...")
         station_group = folium.FeatureGroup(name="Weather Stations").add_to(m)
         for s in final_stations:
             if s['avg_rainfall'] is not None:
-                popup_text = f"<b>{s['name']}</b><br>SKN: {s['skn']}<br>Avg Rainfall: {s['avg_rainfall']:.2f} mm"
+                unit = "mm" if data_type == 'rainfall' else ""
+                popup_text = f"<b>{s['name']}</b><br>SKN: {s['skn']}<br>Avg {data_type.capitalize()}: {s['avg_rainfall']:.2f} {unit}"
                 f_color = colormap(s['avg_rainfall'])
             else:
-                popup_text = f"<b>{s['name']}</b><br>SKN: {s['skn']}<br>(No rainfall data loaded)"
+                popup_text = f"<b>{s['name']}</b><br>SKN: {s['skn']}<br>(No {data_type} data loaded)"
                 f_color = '#666666' # Grey for location-only
             
             folium.CircleMarker(
@@ -277,14 +315,18 @@ def create_unified_map(json_path, tiff_dir, output_file, center_lat=None, center
             ).add_to(station_group)
 
     # Add Circle for visualization of the mask area
-    folium.Circle(
-        location=center,
-        radius=radius_km * 1000,
-        color='blue',
-        weight=1,
-        fill=False,
-        dash_array='5, 5'
-    ).add_to(m)
+    if add_stations and not statewide:
+        folium.Circle(
+            location=center,
+            radius=radius_km * 1000,
+            color='blue',
+            weight=1,
+            fill=False,
+            dash_array='5, 5'
+        ).add_to(m)
+
+
+
 
     # Add Layer Control and Legend
     folium.LayerControl().add_to(m)
@@ -296,17 +338,23 @@ def create_unified_map(json_path, tiff_dir, output_file, center_lat=None, center
         os.remove("temp_unified.png")
 
 def main():
-    parser = argparse.ArgumentParser(description="Create a unified rainfall map (Stations + Raster).")
+    parser = argparse.ArgumentParser(description="Create a unified HCDP map (Stations + Raster).")
+    parser.add_argument("--type", choices=['rainfall', 'temperature'], default='rainfall', help="Data type to map (default: rainfall)")
     parser.add_argument("--json", default=DEFAULT_JSON, help=f"Station JSON file (default: {DEFAULT_JSON})")
-    parser.add_argument("--tiff_dir", default=DEFAULT_TIFF_DIR, help=f"Directory with TIFFs (default: {DEFAULT_TIFF_DIR})")
+    parser.add_argument("--tiff_dir", help="Directory with TIFFs (defaults to monthly_rainfall or monthly_temperature)")
     parser.add_argument("--output", default=OUTPUT_MAP, help=f"Output file (default: {OUTPUT_MAP})")
+
     parser.add_argument("--lat", type=float, help="Center latitude for clipping")
     parser.add_argument("--lon", type=float, help="Center longitude for clipping")
     parser.add_argument("--radius", type=float, help="Radius in km for clipping")
     parser.add_argument("--no_json", action="store_true", help="Omit station rainfall JSON and just map locations")
+    parser.add_argument("--add_stations", action="store_true", help="Include station markers on the map (default: False)")
+    parser.add_argument("--statewide", action="store_true", help="Map the entire state (ignores radius clipping, default: False)")
     
     args = parser.parse_args()
-    create_unified_map(args.json, args.tiff_dir, args.output, args.lat, args.lon, args.radius, args.no_json)
+    create_unified_map(args.json, args.tiff_dir, args.output, args.lat, args.lon, args.radius, args.no_json, args.add_stations, args.statewide, args.type)
+
+
 
 if __name__ == "__main__":
     main()
