@@ -145,8 +145,14 @@ def generate_gridded_map(latitude: float = None, longitude: float = None, radius
     except Exception as e:
         return f"Error creating unified map: {str(e)}"
 
-# 3. Simple Tool-Calling Loop (Modern Pattern)
-def run_agent():
+# 3. Simple Tool-Calling Loop & API Support
+llm_with_tools = None
+
+def initialize_agent():
+    global llm_with_tools
+    if llm_with_tools is not None:
+        return
+        
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         print("[!] ERROR: GOOGLE_API_KEY not found.")
@@ -162,8 +168,71 @@ def run_agent():
     # Bind tools to the LLM
     tools = [geocode_placename, find_nearby_stations, map_nearby_stations, generate_gridded_map]
     llm_with_tools = llm.bind_tools(tools)
+    print("[*] Agent initialized with tools.")
 
+def chat_with_agent(user_input: str, messages: list):
+    """
+    Takes user_input and an existing messages list.
+    Returns (assistant_reply_text, updated_messages_list, new_map_path)
+    """
+    if llm_with_tools is None:
+        initialize_agent()
+        
+    messages.append(HumanMessage(content=user_input))
+    new_map_path = None
     
+    try:
+        # 1. Ask LLM
+        response = llm_with_tools.invoke(messages)
+        messages.append(response)
+        
+        # 2. Check for Tool Calls (Loop for tool chaining)
+        while response.tool_calls:
+            for tool_call in response.tool_calls:
+                # Find the tool
+                tool_map = {
+                    "geocode_placename": geocode_placename,
+                    "find_nearby_stations": find_nearby_stations,
+                    "map_nearby_stations": map_nearby_stations,
+                    "generate_gridded_map": generate_gridded_map
+                }
+
+                selected_tool = tool_map[tool_call["name"]]
+                
+                # Execute tool
+                print(f"[*] Calling tool: {tool_call['name']}({tool_call['args']})")
+                tool_output = selected_tool.invoke(tool_call)
+                
+                # If tool created a map, extract its path for the UI
+                output_str = str(tool_output)
+                if "html" in output_str.lower() and os.path.exists("gridded_map.html"):
+                    new_map_path = os.path.abspath("gridded_map.html")
+                elif "html" in output_str.lower() and "Interactive map created" in output_str:
+                    # simplistic extraction, map_nearby_stations returns path at the end
+                    potential_path = output_str.split(": ")[-1].strip()
+                    if os.path.exists(potential_path):
+                        new_map_path = potential_path
+                elif "unified map generated" in output_str.lower():
+                    potential_path = output_str.split(": ")[-1].strip()
+                    if os.path.exists(potential_path):
+                        new_map_path = potential_path
+
+                # Add tool result to history
+                messages.append(ToolMessage(content=output_str, tool_call_id=tool_call["id"]))
+            
+            # Get next response from LLM (to handle tool results or multi-step tasks)
+            response = llm_with_tools.invoke(messages)
+            messages.append(response)
+            
+        return response.content, messages, new_map_path
+    except Exception as e:
+        print(f"\nError: {e}")
+        return f"Error: {e}", messages, None
+
+def run_agent():
+    initialize_agent()
+    if llm_with_tools is None:
+        return
     # Simple message history
     messages = []
 

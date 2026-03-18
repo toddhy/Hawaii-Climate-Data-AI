@@ -1,0 +1,4 @@
+# Custom Rules
+
+1. Always use the `.venv` python environment located in the root project directory (`c:\SCIPE\HCDP-data-for-AI\.venv`) whenever modifying, running, or installing Python modules.
+2. Before running any python script or pip installation, ensure the virtual environment is activated or use the direct path to the `.venv` executable (e.g., `.\.venv\Scripts\python.exe` or `.\.venv\Scripts\pip.exe` on Windows).
