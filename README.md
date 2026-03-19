@@ -9,6 +9,12 @@ We've integrated a Gemini 2.0 Flash powered chatbot that can:
 - **Inferred Geolocation**: Understand place names (like "Honolulu") and automatically provide coordinates to data scripts.
 - **Batch Processing**: Handle complex workflows like "fetch data for Hilo and then map it".
 
+### High-Performance TileDB Storage
+A centralized storage layer in `database/` that:
+- **Optimized Access**: Replaces slow individual TIFF reads with high-speed multi-dimensional array slicing.
+- **Pixel-Perfect AI Queries**: Provides the backend for the AI agent to retrieve exact historical climate values for any coordinate in Hawaii instantly.
+- **Scalable**: Efficiently manages decades of raster data without memory overhead.
+
 ### HCDP API Tools
 A suite of tools located in `HCDP_API/` for:
 - Finding weather stations within a specific radius.

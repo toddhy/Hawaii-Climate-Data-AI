@@ -31,6 +31,7 @@ A modern LangChain-based agent that uses local scripts as tools.
     - **Geocoding**: Automatically resolves place names (e.g., "Honolulu") using `geopy`.
     - **Station Finder**: Finds weather stations within a specified radius.
     - **Interactive Mapping**: Generates station maps and unified gridded rainfall maps.
+    - **TileDB Climate Queries**: Performs pixel-perfect historical lookups (Rainfall/Temperature) for any coordinate in Hawaii using the high-performance database.
     - **Tool Chaining**: Executes multi-step workflows in a single turn.
 - **Usage**: `python langchain_agent.py`
 
