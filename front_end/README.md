@@ -37,7 +37,8 @@ Open your browser and navigate to the address provided by Vite (usually `http://
 
 ## How to use the App
 
-- **Chat Interface (Left Panel)**: Type queries such as *"Map rainfall near Honolulu"* or *"Create a gridded temperature map for Maui"*. The agent's strict behaviors are configured in `DEFAULT_SYSTEM_PROMPT` inside `gemini_chat/langchain_agent.py`.
+- **Chat Interface (Left Panel)**: Type queries such as *"Map rainfall near Honolulu"* or *"Create a gridded temperature map for Maui"*. 
+- **Precision Data Questions**: The agent can now also answer direct questions like *"What was the temperature in Honolulu in June 1995?"* using the new TileDB backend.
 - **Map View (Right Panel)**: Whenever the agent calls a tool that generates a map (e.g., `generate_gridded_map`), the server instantly outputs the map HTML and the right panel dynamically refreshes to display it.
 
 ## Customizing the Agent

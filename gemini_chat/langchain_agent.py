@@ -122,6 +122,14 @@ def generate_gridded_map(latitude: float = None, longitude: float = None, radius
         return "Error: Unified mapping utility not found."
     
     output_file = "gridded_map.html"
+    # Apply Defaults
+    if radius_km is None and not statewide:
+        radius_km = 5.0
+    
+    if start_date is None and end_date is None:
+        start_date = '2026-01'
+        end_date = '2026-12'
+
     try:
         # Use absolute paths for reliability
         json_path = os.path.join(HCDP_API_DIR, "station_rainfall_data.json")
@@ -145,6 +153,52 @@ def generate_gridded_map(latitude: float = None, longitude: float = None, radius
     except Exception as e:
         return f"Error creating unified map: {str(e)}"
 
+@tool
+def query_historical_climate_data(latitude: float, longitude: float, month: str, variable: str = 'temperature') -> str:
+    """
+    Queries the high-performance TileDB database for exact historical historical climate data (average temperature or rainfall) 
+    at a specific coordinate for a given month.
+    IMPORTANT: If a location name is given (e.g. 'Honolulu'), you MUST use geocode_placename first to get latitude/longitude.
+    Args:
+        latitude: Latitude coordinate.
+        longitude: Longitude coordinate.
+        month: The month to query, strictly formatted as 'YYYY-MM' (e.g. '1995-05').
+        variable: The type of data to query: 'temperature' (Celsius) or 'rainfall' (mm). Defaults to 'temperature'.
+    """
+    try:
+        from database.tiledb_access import get_metadata, get_data_for_month
+        import numpy as np
+        
+        # Select the correct array based on the requested variable
+        array_name = "temperature_array" if variable.lower() == "temperature" else "rainfall_array"
+        unit = "degrees Celsius" if variable.lower() == "temperature" else "mm"
+        
+        db_path = os.path.join(PROJECT_ROOT, "database", array_name)
+        if not os.path.exists(db_path):
+            return f"Error: TileDB database for {variable} not found."
+            
+        meta = get_metadata(db_path)
+        transform = meta["transform"] 
+        a, b, c, d, e, f = transform
+        
+        # Calculate pixel coordinates dynamically via affine inverse for north-up raster
+        col = int((longitude - c) / a)
+        row = int((latitude - f) / e)
+        
+        if col < 0 or col >= meta["width"] or row < 0 or row >= meta["height"]:
+            return f"Error: Coordinates ({latitude}, {longitude}) are outside the bounds of the Hawaii database."
+            
+        data = get_data_for_month(db_path, month)
+        
+        val = data[row, col]
+        if np.isnan(val):
+            return f"No {variable} data available at ({latitude}, {longitude}) for {month} (likely over ocean)."
+            
+        return f"The average {variable} at ({latitude}, {longitude}) for {month} was {val:.2f} {unit}."
+            
+    except Exception as err:
+        return f"Error querying TileDB database: {str(err)}"
+
 # 3. Simple Tool-Calling Loop & API Support
 llm_with_tools = None
 
@@ -155,8 +209,10 @@ Follow these constraints strictly:
 3. Only use the tools provided to you. If a user asks about topics completely unrelated to weather, geography, or climate in Hawaii, politely redirect them back to your specialty.
 4. Only search for locations within the state of Hawaii.
 5. If a place name exists outside of Hawaii, use the Hawaii one. 
-6. If only year is provided, make the date range Jan 1st of that year to Dec 31st of that year.
+6. If no date or only year is provided, default to January through December of the current year (2026).
 7. Default the map radius to 5km if not specified.
+8. For specific historical climate queries (temperature or rainfall), use the query_historical_climate_data tool after finding the coordinates.
+9. If statewide is False, radius_km must be at least 1.0 (default 5.0).
 """
 
 def initialize_agent():
@@ -177,7 +233,7 @@ def initialize_agent():
     )
 
     # Bind tools to the LLM
-    tools = [geocode_placename, find_nearby_stations, map_nearby_stations, generate_gridded_map]
+    tools = [geocode_placename, find_nearby_stations, map_nearby_stations, generate_gridded_map, query_historical_climate_data]
     llm_with_tools = llm.bind_tools(tools)
     print("[*] Agent initialized with tools.")
 
@@ -209,7 +265,8 @@ def chat_with_agent(user_input: str, messages: list):
                     "geocode_placename": geocode_placename,
                     "find_nearby_stations": find_nearby_stations,
                     "map_nearby_stations": map_nearby_stations,
-                    "generate_gridded_map": generate_gridded_map
+                    "generate_gridded_map": generate_gridded_map,
+                    "query_historical_climate_data": query_historical_climate_data
                 }
 
                 selected_tool = tool_map[tool_call["name"]]
@@ -278,7 +335,8 @@ def run_agent():
                         "geocode_placename": geocode_placename,
                         "find_nearby_stations": find_nearby_stations,
                         "map_nearby_stations": map_nearby_stations,
-                        "generate_gridded_map": generate_gridded_map
+                        "generate_gridded_map": generate_gridded_map,
+                        "query_historical_climate_data": query_historical_climate_data
                     }
 
                     selected_tool = tool_map[tool_call["name"]]

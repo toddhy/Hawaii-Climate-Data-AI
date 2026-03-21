@@ -30,7 +30,7 @@ def download_tiff(date_str, output_path):
         'extent': 'statewide',
         #'production': 'new', #for rainfall only. values new/legacy
         'period': 'month',
-        'aggregation': 'mean' #for temperature, comment out otherwise. values min/max/mean
+        'aggregation': 'min' #for temperature, comment out otherwise. values min/max/mean
     }
     
     headers = {

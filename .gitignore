@@ -16,3 +16,7 @@ station_rainfall_data.json
 HCDP_API/__init__.py
 monthly_rainfall
 monthly_temperature
+
+rainfall_array
+temperature_array
+
