@@ -13,12 +13,14 @@ We've integrated a Gemini 2.0 Flash powered chatbot that can:
 ### High-Performance TileDB Storage
 A centralized storage layer in `database/` that:
 - **Optimized Access**: Replaces slow individual TIFF reads with high-speed multi-dimensional array slicing.
-- **Pixel-Perfect AI Queries**: Provides the backend for the AI agent to retrieve exact historical climate values (Temperature, Rainfall, and **SPI**) for any coordinate in Hawaii instantly.
-- **Decades of Coverage**: Now includes over **1,200 total time slices** across three variables:
+- **Pixel-Perfect AI Queries**: Provides the backend for the AI agent to retrieve exact historical climate values for any coordinate in Hawaii instantly.
+- **Decades of Coverage**: Now includes over **1,800 total time slices** across five variables:
     - **Rainfall**: 1990 - 2026
-    - **Temperature**: 1990 - 2026
+    - **Temperature (Mean)**: 1990 - 2026
+    - **Temperature (Max)**: 1990 - 2026
+    - **Temperature (Min)**: 1990 - 2026
     - **SPI (36-month timescale)**: 1992 - 2026
-- **Scalable**: Efficiently manages ~25GB of raster data with optimized multi-dimensional indexing.
+- **Scalable**: Efficiently manages ~25GB of raster data with optimized Zstd compression and multi-dimensional indexing.
 
 > [!NOTE]
 > For information on slight differences between gridded (TIFF) data and station observations, see [database/DATA_DISCREPANCY.md](database/DATA_DISCREPANCY.md).
@@ -41,5 +43,7 @@ To run the complete application (both the FastAPI backend and the React frontend
 The script will start both servers and ensure they are properly terminated when you close the window or press **Ctrl+C**.
 
 ## Useful Links
+- [System Architecture](ARCHITECTURE.md)
+- [Workflow](WORKFLOW.md)
 - [HCDP Publication List](https://www.hawaii.edu/climate-data-portal/publications-list/)
 - [Additional Works Cited (Scholar)](https://scholar.google.com/scholar?oi=bibs&hl=en&cites=15630183130413266936&as_sdt=5)

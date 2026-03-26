@@ -4,37 +4,24 @@ This directory contains scripts for interacting with the Gemini API using the `g
 
 ## Scripts
 
-### 1. `fileAPI_uploader.py`
-Uploads local text files to the Gemini File API.
-Documentation on file uploading here: https://ai.google.dev/api/files and https://ai.google.dev/gemini-api/docs/file-input-methods
+### 1. `server.py` (Backend API)
+FastAPI-based backend that exposes the LangChain agent as a REST API for integration with the React frontend.
+- **Functionality**:
+    - **Session Management**: Maintains conversation history across multiple API calls using `session_id`.
+    - **Static Content**: Serves generated interactive maps (HTML) via the `/maps` endpoint.
+    - **CORS Enabled**: Configured for seamless communication with the frontend dev server.
+- **Usage**: `python server.py` (Starts on `http://127.0.0.1:8000`)
 
-
-- **Functionality**: Scans a directory for `.txt` files and uploads them.
-- **CLI Argument**: accepts `--path` to specify the search directory (defaults to current directory).
-- **Initial Prompt**: Generates an initial summary of uploaded texts.
-- **Usage**: `python fileAPI_uploader.py --path /your/data/folder`
-
-### 2. `chatbot.py`
-Continuous chat session using all active uploaded files as context.
-- **Functionality**: Fetches active files and starts an interactive chat.
-- **Memory**: Maintains conversation history within the session.
-- **Usage**: `python chatbot.py`
-
-### 3. `prompt_existing.py`
-Single-turn interaction with already uploaded files.
-- **Functionality**: Fetches `ACTIVE` files and prompts for a single question.
-- **Usage**: `python prompt_existing.py`
-
-### 4. `langchain_agent.py` (Recommended Agent)
-A modern LangChain-based agent that uses local scripts as tools.
+### 2. `langchain_agent.py` (Recommended Agent)
+A modern LangChain-based agent that uses local scripts and TileDB as tools to answer climate questions and generate maps.
 - **Functionality**:
     - **Geocoding**: Automatically resolves place names (e.g., "Honolulu") using `geopy`.
     - **Station Finder**: Finds weather stations within a specified radius.
-    - **Interactive Mapping**: Generates station maps and unified gridded rainfall maps.
-    - **TileDB Climate Queries**: Performs pixel-perfect historical lookups (Rainfall/Temperature) for any coordinate in Hawaii using the high-performance database.
-    - **Intelligent Defaults**: Automatically applies a **5.0 km radius** and the **current year (2026)** to map requests if they are not explicitly provided by the user.
-    - **Tool Chaining**: Executes multi-step workflows in a single turn.
-- **Usage**: `python langchain_agent.py`
+    - **Interactive Mapping**: Generates station maps and unified gridded maps for all supported variables.
+    - **TileDB Climate Queries**: Performs pixel-perfect historical lookups for **Rainfall, Temperature (Mean/Max/Min), and SPI** for any coordinate in Hawaii.
+    - **Intelligent Defaults**: Automatically applies a **5.0 km radius** and the **current year (2026)** to requests if they are not explicitly provided.
+    - **Tool Chaining**: Executes multi-step workflows (e.g., Geocode -> Query -> Map) in a single turn.
+- **Usage**: `python langchain_agent.py` (CLI interactive mode)
 
 ## Requirements
 - Python **3.14+** compatible (uses `bind_tools` pattern).

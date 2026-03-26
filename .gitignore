@@ -21,7 +21,7 @@ HCDP_API/__init__.py
 #Large Data Files
 monthly_rainfall
 monthly_temperature
-monthly_spi
+spi
 monthly_min_temperature
 monthly_max_temperature
 rainfall_array
