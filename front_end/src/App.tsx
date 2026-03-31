@@ -36,7 +36,10 @@ function App() {
       
       if (response.map_url) {
         // use absolute URL based on API base to render iframe correctly
-        setMapUrl(`http://127.0.0.1:8000${response.map_url}?t=${new Date().getTime()}`);
+        const HOST = window.location.port === '5173' 
+          ? `http://${window.location.hostname}:8000` 
+          : `${window.location.protocol}//${window.location.host}/api`;
+        setMapUrl(`${HOST}${response.map_url}?t=${new Date().getTime()}`);
       }
     } catch (error) {
       setMessages(prev => [...prev, { 

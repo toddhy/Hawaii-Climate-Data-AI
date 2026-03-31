@@ -1,10 +1,14 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 # Startup Script for HCDP Project (Linux/macOS)
 
 # 1. Start Backend (FastAPI)
 echo "Starting Backend Server..."
 PYTHON_EXE=".venv/bin/python"
+if [ ! -f "$PYTHON_EXE" ]; then
+    PYTHON_EXE=".venv_linux/bin/python"
+fi
+
 if [ ! -f "$PYTHON_EXE" ]; then
     PYTHON_EXE=$(which python3 || which python)
 fi

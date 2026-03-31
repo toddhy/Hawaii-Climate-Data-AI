@@ -17,6 +17,8 @@ HCDP_API/__init__.py
 .clinerules
 .cursorrules
 .windsurfrules
+.venv_linux
+.venv
 
 #Large Data Files
 monthly_rainfall

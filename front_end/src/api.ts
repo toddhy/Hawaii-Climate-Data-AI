@@ -9,7 +9,10 @@ export interface ChatResponse {
   messages: ChatMessage[];
 }
 
-const API_BASE_URL = 'http://127.0.0.1:8000';
+// In development, we use port 8000. In production (via Nginx), we can use the same host.
+const API_BASE_URL = window.location.port === '5173' 
+  ? `http://${window.location.hostname}:8000` 
+  : `${window.location.protocol}//${window.location.host}/api`;
 
 export async function sendMessage(message: string, sessionId: string = 'default'): Promise<ChatResponse> {
   const res = await fetch(`${API_BASE_URL}/chat`, {
