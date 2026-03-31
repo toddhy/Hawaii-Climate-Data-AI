@@ -12,7 +12,7 @@ import os
 INPUT_FILE = "station_rainfall_data.json"
 OUTPUT_MAP = "station_map.html"
 
-def create_station_map(station_data=None):
+def create_station_map(station_data=None, output_file=OUTPUT_MAP):
     """
     Creates an interactive Folium map from station data.
     If station_data is None, it attempts to read from INPUT_FILE.
@@ -82,8 +82,8 @@ def create_station_map(station_data=None):
         ).add_to(m)
 
     # 4. Save the map
-    m.save(OUTPUT_MAP)
-    abs_path = os.path.abspath(OUTPUT_MAP)
+    m.save(output_file)
+    abs_path = os.path.abspath(output_file)
     print(f"Success! Map saved to: {abs_path}")
     return abs_path
 

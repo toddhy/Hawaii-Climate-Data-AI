@@ -45,7 +45,7 @@ sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl reload nginx
 
 # 5. Start Backend in Virtual Environment
-echo "[*] Starting FastAPI Backend in background..."
+echo "[*] Starting FastAPI Backend..."
 cd "$PROJECT_ROOT" || exit
 
 if [ -f "$VENV_PATH/bin/activate" ]; then
@@ -55,12 +55,12 @@ else
     echo "[!] Warning: Virtual environment not found at $VENV_PATH. Using system python."
 fi
 
-# Run backend with nohup to keep it alive
-nohup python "$BACKEND_SCRIPT" > "$LOG_FILE" 2>&1 &
-
 echo "------------------------------------------------"
 echo "SUCCESS: HCDP AI is now live!"
 echo "Frontend: http://localhost (via Nginx)"
 echo "Backend: Port 8000 (proxied via /api/)"
-echo "Logs: $LOG_FILE"
 echo "------------------------------------------------"
+echo "[*] Displaying server logs below (Ctrl+C to stop the server):"
+
+# Run backend in foreground
+python "$BACKEND_SCRIPT"

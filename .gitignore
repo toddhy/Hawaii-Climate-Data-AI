@@ -19,6 +19,9 @@ HCDP_API/__init__.py
 .windsurfrules
 .venv_linux
 .venv
+server.log
+package-lock.json
+node_modules
 
 #Large Data Files
 monthly_rainfall

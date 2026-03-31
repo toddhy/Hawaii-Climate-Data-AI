@@ -85,7 +85,7 @@ def find_nearby_stations(latitude: float, longitude: float, radius_km: float = 5
         return f"Error finding stations: {str(e)}"
 
 @tool
-def map_nearby_stations(latitude: float, longitude: float, radius_km: float = 5.0) -> str:
+def map_nearby_stations(latitude: float, longitude: float, radius_km: float = 5.0, session_id: str = "default") -> str:
     """
     Finds weather stations within a specified kilometer radius and generates an interactive HTML map.
     Returns the file path of the generated map.
@@ -98,8 +98,14 @@ def map_nearby_stations(latitude: float, longitude: float, radius_km: float = 5.
         if results.empty:
             return f"No stations found to map within {radius_km}km of ({latitude}, {longitude})."
         
-        map_path = create_station_map(results)
-        return f"Interactive map created successfully: {map_path}"
+        
+        # Use session_id for unique filenames
+        clean_sid = "".join(x for x in str(session_id) if x.isalnum())
+        output_file = f"stations_{clean_sid}.html" if clean_sid else "station_map.html"
+        output_file_abs = os.path.join(PROJECT_ROOT, output_file)
+        
+        map_path = create_station_map(results, output_file=output_file_abs)
+        return f"Interactive map created successfully: {output_file_abs}"
     except Exception as e:
         return f"Error creating map: {str(e)}"
 
@@ -300,17 +306,23 @@ def chat_with_agent(user_input: str, messages: list, session_id: str = "default"
                 
                 # If tool created a map, extract its path for the UI
                 output_str = str(tool_output)
-                if "html" in output_str.lower() and os.path.exists("gridded_map.html"):
-                    new_map_path = os.path.abspath("gridded_map.html")
-                elif "html" in output_str.lower() and "Interactive map created" in output_str:
-                    # simplistic extraction, map_nearby_stations returns path at the end
-                    potential_path = output_str.split(": ")[-1].strip()
-                    if os.path.exists(potential_path):
-                        new_map_path = potential_path
-                elif "unified map generated" in output_str.lower():
-                    potential_path = output_str.split(": ")[-1].strip()
-                    if os.path.exists(potential_path):
-                        new_map_path = potential_path
+                if "successfully:" in output_str.lower():
+                    # Robust cross-platform extraction: find the path after "successfully:"
+                    try:
+                        marker = "successfully:"
+                        start_idx = output_str.lower().find(marker) + len(marker)
+                        potential_path = output_str[start_idx:].strip()
+                        if os.path.exists(potential_path):
+                            new_map_path = os.path.abspath(potential_path)
+                    except Exception:
+                        pass
+                
+                # Fallback for old/legacy hardcoded names if they still exist
+                if not new_map_path:
+                    if "html" in output_str.lower() and os.path.exists("gridded_map.html"):
+                        new_map_path = os.path.abspath("gridded_map.html")
+                    elif "html" in output_str.lower() and os.path.exists("station_map.html"):
+                        new_map_path = os.path.abspath("station_map.html")
 
                 # Add tool result to history
                 messages.append(ToolMessage(content=output_str, tool_call_id=tool_call["id"]))
