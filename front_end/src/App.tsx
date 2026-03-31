@@ -11,7 +11,18 @@ function App() {
   }]);
   const [isLoading, setIsLoading] = useState(false);
   const [mapUrl, setMapUrl] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize Session ID
+  useEffect(() => {
+    let sid = localStorage.getItem('hcdp_session_id');
+    if (!sid) {
+      sid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('hcdp_session_id', sid);
+    }
+    setSessionId(sid);
+  }, []);
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
@@ -28,7 +39,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await sendMessage(userMessage);
+      const response = await sendMessage(userMessage, sessionId);
       
       // The API returns all messages, but we only want to append the new ones that aren't the user message we just added
       // Or simply replace the entire message history
