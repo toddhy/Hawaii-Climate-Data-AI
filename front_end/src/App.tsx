@@ -13,7 +13,8 @@ function App() {
   const [mapUrl, setMapUrl] = useState<string | null>(null);
   const [sessionId] = useState<string>(() => {
     let sid = localStorage.getItem('hcdp_session_id');
-    if (!sid) {
+    // Force a new ID if it's missing OR if it's still the generic "default" from a previous session
+    if (!sid || sid === 'default') {
       sid = Math.random().toString(36).substring(2, 11) + Math.random().toString(36).substring(2, 11);
       localStorage.setItem('hcdp_session_id', sid);
     }
