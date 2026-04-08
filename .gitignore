@@ -33,7 +33,6 @@ HCDP_API/__init__.py
 .venv_linux
 .venv
 server.log
-package-lock.json
 node_modules
 pymupdf-venv
 sync.sh
