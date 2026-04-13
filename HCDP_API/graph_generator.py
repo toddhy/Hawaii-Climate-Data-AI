@@ -15,10 +15,13 @@ def create_climatogram_file(df, output_path=None, title="Monthly Climate Average
     Returns:
         Absolute path to the generated HTML file.
     """
-    # Use script directory if no path provided
+    # Use shared outputs directory if no path provided
     if output_path is None:
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        output_path = os.path.join(script_dir, "climate_chart.html")
+        project_root = os.path.dirname(script_dir)
+        outputs_dir = os.path.join(project_root, "outputs")
+        os.makedirs(outputs_dir, exist_ok=True)
+        output_path = os.path.join(outputs_dir, "climate_chart.html")
 
     # Create figure with secondary y-axis
     fig = make_subplots(specs=[[{"secondary_y": True}]])

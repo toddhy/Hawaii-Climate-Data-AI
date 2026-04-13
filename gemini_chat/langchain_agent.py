@@ -12,6 +12,10 @@ load_dotenv()
 # Add project root and HCDP_API directory to sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 HCDP_API_DIR = os.path.join(PROJECT_ROOT, "HCDP_API")
+OUTPUTS_DIR = os.path.join(PROJECT_ROOT, "outputs")
+
+# Ensure outputs directory exists
+os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
 for path in [PROJECT_ROOT, HCDP_API_DIR]:
     if path not in sys.path:
@@ -124,7 +128,7 @@ def map_nearby_stations(latitude: float, longitude: float, radius_km: float = 5.
         # Use session_id for unique filenames
         clean_sid = "".join(x for x in str(session_id) if x.isalnum())
         output_file = f"stations_{clean_sid}.html" if clean_sid else "station_map.html"
-        output_file_abs = os.path.join(PROJECT_ROOT, output_file)
+        output_file_abs = os.path.join(OUTPUTS_DIR, output_file)
         
         map_path = create_station_map(results, output_file=output_file_abs)
         return f"Interactive map created successfully: {output_file_abs}"
@@ -163,7 +167,7 @@ def generate_gridded_map(latitude: float = None, longitude: float = None, radius
     try:
         # Use absolute paths for reliability
         json_path = os.path.join(HCDP_API_DIR, "station_rainfall_data.json")
-        output_file_abs = os.path.join(PROJECT_ROOT, output_file)
+        output_file_abs = os.path.join(OUTPUTS_DIR, output_file)
 
         create_unified_map(
             json_path=json_path if use_existing_json else None,
@@ -427,7 +431,7 @@ def generate_climatogram(latitude: float, longitude: float, start_year: int = No
 
         clean_sid = "".join(x for x in str(session_id) if x.isalnum())
         output_file = f"climatogram_{clean_sid}.html" if clean_sid else "climatogram.html"
-        output_path = os.path.join(PROJECT_ROOT, output_file)
+        output_path = os.path.join(OUTPUTS_DIR, output_file)
 
         chart_title = f"Climate Climatogram ({start_year}-{end_year}) - Units: {units.capitalize()}"
         abs_path = create_climatogram_file(df_plot, output_path=output_path, title=chart_title, auto_open=False)

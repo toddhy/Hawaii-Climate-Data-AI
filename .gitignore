@@ -12,7 +12,8 @@ __pycache__
 *.png
 *.tiff
 
-# Generated Maps (Root Only)
+# Generated Outputs
+outputs/*.html
 /gridded_map.html
 /gridded_rainfall_map.html
 /station_map.html

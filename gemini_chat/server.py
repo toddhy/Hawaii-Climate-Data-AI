@@ -25,10 +25,10 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-# Serve static files (where Maps are saved)
-# Serve the PROJECT_ROOT statically because langchain_agent saves to PROJECT_ROOT by default
-# For security, we might want to restrict this in production, but for local dev it's fine.
-app.mount("/maps", StaticFiles(directory=PROJECT_ROOT), name="maps")
+# Serve static files (where Maps and Graphs are saved)
+OUTPUTS_DIR = os.path.join(PROJECT_ROOT, "outputs")
+os.makedirs(OUTPUTS_DIR, exist_ok=True)
+app.mount("/outputs", StaticFiles(directory=OUTPUTS_DIR), name="outputs")
 
 # Request / Response Schemas
 class ChatRequest(BaseModel):
@@ -84,9 +84,9 @@ async def chat_endpoint(req: ChatRequest):
     # Return response payload
     map_url = None
     if generated_map:
-        # We serve from /maps/ which points to PROJECT_ROOT
+        # We serve from /outputs/ which points to the outputs directory
         filename = os.path.basename(generated_map)
-        map_url = f"/maps/{filename}"
+        map_url = f"/outputs/{filename}"
         
     return ChatResponse(
         response=reply,
