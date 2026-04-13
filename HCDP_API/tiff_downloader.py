@@ -1,14 +1,15 @@
 """
-Takes a start and end date in YYYY-MM format and downloads rainfall TIFF files for each month in that range. 
-The data is from https://api.hcdp.ikewai.org/raster/timeseries
-example: python tiff_downloader.py 2022-01 2022-12
+Takes a start and end date in YYYY-MM or YYYY-MM-DD format and downloads TIFF files for each unit in that range. 
+The data is from https://api.hcdp.ikewai.org/raster
+example (monthly): python tiff_downloader.py 2022-01 2022-12
+example (daily): python tiff_downloader.py 2026-01-01 2026-04-01
 """
 
 import os
 import requests
 import argparse
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 # Load environment variables (for API token)
@@ -18,7 +19,7 @@ load_dotenv()
 API_URL = "https://api.hcdp.ikewai.org/raster"
 AUTH_TOKEN = os.getenv("HCDP_API_TOKEN")
 
-def download_tiff(date_str, output_path):
+def download_tiff(date_str, output_path, datatype='rainfall', period='month'):
     """
     Downloads a single TIFF file for a specific date from the HCDP API.
     """
@@ -26,13 +27,17 @@ def download_tiff(date_str, output_path):
         'date': date_str,
         'location': 'hawaii',
         'returnEmptyNotFound': 'false',
-        'datatype': 'temperature',
+        'datatype': datatype,
         'extent': 'statewide',
-        'period': 'month',
-        'aggregation': 'max' #for temperature, comment out otherwise. values min/max/mean
-        #'production': 'new', #for rainfall only. values new/legacy
-        #'timescale': 'timescale036' #for spi drought index. Values are timescale001, timescale003, timescale006, timescale009, timescale012, timescale024, timescale036, timescale048, timescale060
+        'period': period,
     }
+    
+    # Optional parameters based on datatype
+    if datatype == 'rainfall':
+        params['production'] = 'new'
+    elif datatype == 'temperature':
+        # params['aggregation'] = 'mean' # could be min/max/mean
+        pass
     
     headers = {
         'accept': 'image/tif',
@@ -58,9 +63,10 @@ def download_tiff(date_str, output_path):
         return False
 
 def main():
-    parser = argparse.ArgumentParser(description="Batch download rainfall TIFFs from HCDP API.")
-    parser.add_argument("start_date", help="Start date (YYYY-MM)")
-    parser.add_argument("end_date", help="End date (YYYY-MM)")
+    parser = argparse.ArgumentParser(description="Batch download TIFFs from HCDP API.")
+    parser.add_argument("start_date", help="Start date (YYYY-MM or YYYY-MM-DD)")
+    parser.add_argument("end_date", help="End date (YYYY-MM or YYYY-MM-DD)")
+    parser.add_argument("--datatype", default="rainfall", help="Data type: rainfall, temperature, etc. (default: rainfall)")
     parser.add_argument("--output_dir", default="downloads", help="Directory to save TIFFs (default: downloads)")
     
     args = parser.parse_args()
@@ -74,23 +80,30 @@ def main():
         os.makedirs(args.output_dir)
         print(f"Created directory: {args.output_dir}")
 
-    # Parse dates
+    # Detect format and parse dates
+    is_daily = len(args.start_date) == 10 # YYYY-MM-DD is 10 chars
+    date_format = "%Y-%m-%d" if is_daily else "%Y-%m"
+    period = "day" if is_daily else "month"
+
     try:
-        current_date = datetime.strptime(args.start_date, "%Y-%m")
-        end_date = datetime.strptime(args.end_date, "%Y-%m")
+        current_date = datetime.strptime(args.start_date, date_format)
+        end_date = datetime.strptime(args.end_date, date_format)
     except ValueError:
-        print("Error: Dates must be in YYYY-MM format.")
+        print(f"Error: Dates must be in {date_format} format.")
         return
 
     while current_date <= end_date:
-        date_str = current_date.strftime("%Y-%m")
+        date_str = current_date.strftime(date_format)
         file_name = f"{date_str}.tiff"
         output_path = os.path.join(args.output_dir, file_name)
         
-        download_tiff(date_str, output_path)
+        download_tiff(date_str, output_path, datatype=args.datatype, period=period)
         
-        # Increment month
-        current_date += relativedelta(months=1)
+        # Increment
+        if is_daily:
+            current_date += timedelta(days=1)
+        else:
+            current_date += relativedelta(months=1)
 
     print("Batch download complete.")
 
