@@ -23,6 +23,7 @@ Advanced PDF processing pipeline for extracting structured data from academic pa
 
 ### 4. `misc/`
 General-purpose scripts for codebase and data maintenance.
+- `compress_tiffs.py`: Generalized utility to compress GeoTIFF files using lossless LZW compression (saves GBs of space).
 - `optimize_stations_data.py`: Prunes and reformats station metadata for faster UI loading.
 - `print_duplicate_files.py`: Identifies redundant TIFFs or PDFs across directories.
 - `compare_pdf_txt.py`: Validates the integrity of text extraction against original source PDFs.

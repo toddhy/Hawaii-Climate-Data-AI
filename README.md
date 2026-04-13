@@ -15,7 +15,7 @@ For a detailed breakdown of the agent's tools and the underlying technical archi
 
 ### High-Performance TileDB Storage
 A centralized storage layer in `database/` that:
-- **Optimized Access**: Replaces slow individual TIFF reads with high-speed multi-dimensional array slicing.
+- **`optimize_storage.py`**: Utility to migrate/re-ingest TileDB data with high-level Zstd compression (Level 7) for maximum disk efficiency.
 - **Pixel-Perfect AI Queries**: Provides the backend for the AI agent to retrieve exact historical climate values for any coordinate in Hawaii instantly.
 - **Decades of Coverage**: Now includes over **1,800 total time slices** across five variables:
     - **Rainfall**: 1990 - 2026
@@ -23,7 +23,7 @@ A centralized storage layer in `database/` that:
     - **Temperature (Max)**: 1990 - 2026
     - **Temperature (Min)**: 1990 - 2026
     - **SPI (36-month timescale)**: 1992 - 2026
-- **Scalable**: Efficiently manages ~25GB of raster data with optimized Zstd compression and multi-dimensional indexing.
+- **Scalable**: Efficiently manages ~11GB of raster data with optimized Zstd (TileDB) and LZW (TIFF) compression.
 - **Robust NoData Handling**: Implements automated masking of legacy fill values (e.g., -9999.0) and extreme float values, ensuring all aggregations (mean, sum) are statistically accurate.
 - **Memory-Efficient**: Optimized for large-scale map generation using an incremental 2D accumulation strategy to handle decades of data without exhausting system RAM.
 
