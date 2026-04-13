@@ -21,6 +21,7 @@ graph TD
         G["<b>geocode_placename</b>"]
         F["<b>find_nearby_stations</b>"]
         M["<b>generate_gridded_map</b>"]
+        C["<b>generate_climatogram</b>"]
         Q["<b>query_historical_climate_data</b>"]
     end
 
@@ -28,6 +29,7 @@ graph TD
         Geo["<b>Nominatim Geocoder</b>"]
         Finder["<b>station_finder.py</b>"]
         Vis["<b>map_visualizer.py</b>"]
+        Grapher["<b>graph_generator.py</b>"]
         TileAPI["<b>tiledb_access.py</b>"]
     end
 
@@ -45,18 +47,21 @@ graph TD
     Tools --> G
     Tools --> F
     Tools --> M
+    Tools --> C
     Tools --> Q
 
     %% Flow: Tool -> Logic
     G --> Geo
     F --> Finder
     M --> Vis
+    C --> Grapher
     Q --> TileAPI
 
     %% Flow: Logic -> Data
     Finder --> CSV
     Vis -- "<b>Aggregates</b>" --> TIFFs
     Vis -- "<b>Markers</b>" --> CSV
+    Grapher -- "<b>Queries</b>" --> TileAPI
     TileAPI -- "<b>Slices/Queries</b>" --> TDB
 
     %% Flow: Output
@@ -90,10 +95,10 @@ The project also includes a specialized workflow for optimizing storage efficien
 ```mermaid
 %%{init: {'theme': 'neutral', 'themeVariables': {'fontSize': '18px', 'fontFamily': 'trebuchet ms', 'primaryTextColor': '#111111', 'lineColor': '#444444', 'subgraphTitleSize': '22px'}}}%%
 graph LR
-    Raw["<b>Raw HCDP TIFFs</b>"] --> Opt["<b>optimize_storage.py</b>"]
-    Opt -- "<b>Re-ingestion</b>" --> TDB_New[("<b>Optimized TileDB</b>")]
-    TDB_New -- "<b>Zstd Compression</b>" --> Storage["<b>25 GB → Reduced Size</b>"]
-    TDB_New -- "<b>Optimized Dimensions</b>" --> Agent["<b>LangChain Agent</b>"]
+    Raw["<b>Raw HCDP TIFFs</b>"] --> Opt["<b>compress_tiffs.py</b>"]
+    Opt -- "<b>LZW Compression</b>" --> TDB_New[("<b>Optimized TIFFs</b>")]
+    TDB_New -- "<b>Ingestion</b>" --> Storage["<b>25 GB → 11 GB Total</b>"]
+    Storage -- "<b>TileDB Slicing</b>" --> Agent["<b>LangChain Agent</b>"]
 
     classDef source  fill:#B45309,stroke:#7c3700,color:#ffffff,font-weight:bold
     classDef process fill:#5B21B6,stroke:#2e1065,color:#ffffff,font-weight:bold
@@ -106,5 +111,32 @@ graph LR
     class Storage,Agent output
 ```
 
+## Climatogram Generation Workflow
+
+The following diagram illustrates the specialized process for generating high-fidelity dual-axis climatograms from the TileDB time-series data.
+
+```mermaid
+%%{init: {'theme': 'neutral', 'themeVariables': {'fontSize': '18px', 'fontFamily': 'trebuchet ms', 'primaryTextColor': '#111111', 'lineColor': '#444444', 'subgraphTitleSize': '22px'}}}%%
+graph LR
+    UserRequest["👤 <b>User Prompt</b><br/>(e.g., 'Chart climate for Hilo')"] --> Agent["🤖 <b>AI Agent</b>"]
+    Agent -- "<b>Invokes</b>" --> Tool["🛠️ <b>generate_climatogram</b>"]
+    Tool -- "<b>Coordinates</b>" --> Gen["⚙️ <b>graph_generator.py</b>"]
+    Gen -- "<b>Time-Series Query</b>" --> TDB["🗄️ <b>TileDB Access</b>"]
+    
+    TDB -- "<b>Rainfall Data</b>" --> Gen
+    TDB -- "<b>Temperature Data</b>" --> Gen
+    
+    Gen -- "<b>Processes Plotly</b>" --> HTML["📂 <b>outputs/climate_chart.html</b>"]
+    HTML -- "<b>Served via API</b>" --> UI["🖥️ <b>Web Dashboard</b>"]
+
+    classDef proc fill:#1D4ED8,stroke:#1e3a5f,color:#ffffff,font-weight:bold
+    classDef tool fill:#B45309,stroke:#7c3700,color:#ffffff,font-weight:bold
+    classDef data fill:#334155,stroke:#0f172a,color:#ffffff,font-weight:bold
+    
+    class UserRequest,UI proc
+    class Agent,Tool,Gen tool
+    class TDB,HTML data
+```
+
 > [!TIP]
-> **TileDB Efficiency**: The TileDB arrays allow the agent to query a single "pixel" across 30+ years of data without loading entire TIFF files into memory, enabling near-instant response times for historical climate queries.
+> **Data Density**: Unlike simple maps, the climatogram workflow retrieves and aggregates over **400 data points** per variable to provide a complete historical view of the location's climate trends.

@@ -13,6 +13,7 @@ graph TD
     subgraph "⚙️ Backend (FastAPI)<br/>"
         Srv["<b>Server</b><br/>(server.py)"]
         DB_Sess[("<b>Session Store</b><br/>(Memory)")]
+        Cleanup["<b>Cleanup Manager</b><br/>(24h Retention)"]
     end
     subgraph "🤖 AI Agent (LangChain)<br/>"
         Agent["<b>LangChain Agent</b><br/>(langchain_agent.py)"]
@@ -21,6 +22,7 @@ graph TD
     subgraph "🔧 Tools & Utilities (HCDP API)<br/>"
         Finder["<b>Station Finder</b>"]
         Mapper["<b>Map Visualizer</b>"]
+        Grapher["<b>Graph Generator</b>"]
     end
     subgraph "🗄️ Data Layer (TileDB)<br/>"
         TDB_Access["<b>TileDB Access</b><br/>(tiledb_access.py)"]
@@ -32,17 +34,23 @@ graph TD
     Client -- "<b>POST /chat</b>" --> Srv
     Srv --> DB_Sess
     Srv -- "<b>Invoke</b>" --> Agent
+    Srv -- "<b>Triggers</b>" --> Cleanup
     Agent -- "<b>Prompts</b>" --> LLM
     Agent -- "<b>Calls</b>" --> Finder
     Agent -- "<b>Calls</b>" --> Mapper
+    Agent -- "<b>Calls</b>" --> Grapher
     Finder -- "<b>Queries</b>" --> TDB_Access
     Mapper -- "<b>Queries</b>" --> TDB_Access
+    Grapher -- "<b>Queries</b>" --> TDB_Access
     Agent -- "<b>Queries</b>" --> TDB_Access
     TDB_Access --> Rainfall
     TDB_Access --> Temp
     TDB_Access --> SPI
-    Mapper -- "<b>Generates</b>" --> MapHTML["<b>gridded_map.html</b>"]
-    Srv -- "<b>Serves</b>" --> MapHTML
+    
+    Mapper -- "<b>Generates</b>" --> OutDir["<b>outputs/</b>"]
+    Grapher -- "<b>Generates</b>" --> OutDir
+    OutDir --> MapHTML["<b>Map/Graph HTML</b>"]
+    Srv -- "<b>Serves Static</b>" --> OutDir
     MapHTML --> Map
 
     %% Styles per layer — deeper fills, white text for strong contrast
@@ -53,16 +61,16 @@ graph TD
     classDef data     fill:#334155,stroke:#0f172a,color:#ffffff,font-weight:bold
 
     class UI,Map,Client frontend
-    class Srv,DB_Sess backend
+    class Srv,DB_Sess,Cleanup backend
     class Agent,LLM agent
-    class Finder,Mapper tools
-    class TDB_Access,Rainfall,Temp,SPI,MapHTML data
+    class Finder,Mapper,Grapher tools
+    class TDB_Access,Rainfall,Temp,SPI,OutDir,MapHTML data
 ```
 
 ## Component Breakdown
 
 1.  **React Frontend**: Provides a premium chat interface where users can ask natural language questions. It displays the assistant's text responses and renders generated interactive maps in an iframe.
-2.  **FastAPI Backend**: Acts as the bridge between the frontend and the AI. It manages conversation sessions and serves the generated HTML map files.
-3.  **LangChain Agent**: The "brain" of the application. It uses Gemini 2.0 Flash to understand intent and decides which local tools to call (geocoding, data querying, or mapping).
-4.  **HCDP API Tools**: Specialized Python scripts that perform heavy lifting like coordinate resolution, spatial searches, precision climate data querying, and raster map generation using `folium` and `rasterio`.
-5.  **TileDB Data Layer**: A high-performance spatial database storing over 30 years of monthly climate data for Hawaii. The access layer (`tiledb_access.py`) is optimized for both sub-second time-series retrieval and memory-efficient large-scale map generation through incremental 2D accumulation. It features robust automated NoData masking to ensure high data integrity for all numerical aggregations.
+2.  **FastAPI Backend**: Acts as the bridge between the frontend and the AI. It manages conversation sessions, serves generated HTML from a dedicated `outputs/` directory, and orchestrates an automated **Cleanup Manager** to prune stale files.
+3.  **LangChain Agent**: The "brain" of the application. It uses Gemini 2.0 Flash to understand intent and decides which local tools to call (geocoding, data querying, mapping, or climatogram generation).
+4.  **HCDP API Tools**: Specialized Python scripts for coordinate resolution, spatial searches, precision climate data querying, and visual generation (Leaflet/Folium maps and Plotly climatograms).
+5.  **TileDB Data Layer**: A high-performance spatial database storing over 30 years of monthly climate data. It is now optimized with **LZW/Zstd compression**, reducing the footprint from ~25GB to **~11GB** while maintaining sub-second query performance.

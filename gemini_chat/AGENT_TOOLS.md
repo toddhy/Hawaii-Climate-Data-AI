@@ -17,6 +17,7 @@ Tools are high-level functions decorated with `@tool` that the LLM is explicitly
 | `find_nearby_stations` | Finds weather stations within a specific KM radius. | `latitude`, `longitude`, `radius_km` |
 | `map_nearby_stations` | Generates a basic HTML map showing station locations only. | `latitude`, `longitude`, `radius_km` |
 | `generate_gridded_map` | Generates a complex map with raster overlays (Rainfall/Temp) and stations. | `data_type`, `latitude`, `longitude`, `start_date`, `end_date`, `add_stations` |
+| `generate_climatogram` | Generates a dual-axis Plotly climatogram (Temperature + Rainfall) for a point. | `latitude`, `longitude` |
 | `query_historical_climate_data` | Queries exact historical climate values from the TileDB database for a single month. | `latitude`, `longitude`, `month`, `variable` |
 | `query_historical_timeseries` | Queries the TileDB database for summarized regional climate data over a date range. | `latitude`, `longitude`, `radius_km`, `start_date`, `end_date`, `variable` |
 
@@ -35,6 +36,11 @@ Utilities are internal python modules and scripts that perform the heavy lifting
     *   Clipping raster data to a user-defined radius.
     *   Generating Folium maps with custom colormaps and station overlays.
 *   **[map_HCDP_stations.py](file:///c:/SCIPE/HCDP-data-for-AI/HCDP_API/map_HCDP_stations.py)**: A lighter-weight utility focused specifically on plotting station markers without raster data.
+*   **[graph_generator.py](file:///c:/SCIPE/HCDP-data-for-AI/HCDP_API/graph_generator.py)**: Generates high-fidelity Plotly climatograms with localized grid-line and aesthetic refinements.
+
+### 3. File Management & Output
+*   **`outputs/`**: A dedicated directory for all generated HTML visualizations. The backend serves this directory statically at `/outputs/`.
+*   **[cleanup_manager.py](file:///c:/SCIPE/HCDP-data-for-AI/gemini_chat/cleanup_manager.py)**: Automatically prunes the `outputs/` folder, removing files older than 24 hours to prevent storage bloat.
 
 ### 3. External Services
 *   **Geopy (Nominatim)**: An external library used within the `geocode_placename` tool to provide geographic search capabilities (OpenStreetMap).
