@@ -4,11 +4,10 @@ Analyzing data from the Hawaii Climate Data Portal.
 ## Project Highlights
 
 ### Gemini Chatbot Automation
-We've integrated a Gemini 2.0 Flash powered chatbot that can:
+We've integrated a Gemini 3.1 Flash powered chatbot that can:
 - **Execute Local Scripts**: Trigger data fetching and mapping directly from natural language.
 - **Inferred Geolocation**: Understand place names (like "Honolulu") and automatically provide coordinates to data scripts.
 - **Intelligent Defaults**: Automatically applies a **5.0 km radius** and the **current year (2026)** to map requests if not specified.
-- **Batch Processing**: Handle complex workflows like "fetch data for Hilo and then map it".
 
 For a detailed breakdown of the agent's tools and the underlying technical architecture, see [AGENT_TOOLS.md](file:///c:/SCIPE/HCDP-data-for-AI/gemini_chat/AGENT_TOOLS.md).
 
@@ -27,9 +26,6 @@ A centralized storage layer in `database/` that:
 - **Robust NoData Handling**: Implements automated masking of legacy fill values (e.g., -9999.0) and extreme float values, ensuring all aggregations (mean, sum) are statistically accurate.
 - **Memory-Efficient**: Optimized for large-scale map generation using an incremental 2D accumulation strategy to handle decades of data without exhausting system RAM.
 
-> [!NOTE]
-> For information on slight differences between gridded (TIFF) data and station observations, see [database/DATA_DISCREPANCY.md](database/DATA_DISCREPANCY.md).
-
 ### HCDP API Tools
 A suite of tools located in `HCDP_API/` for:
 - Finding weather stations within a specific radius.
@@ -38,19 +34,45 @@ A suite of tools located in `HCDP_API/` for:
 - Creating unified maps with both station points and gridded rainfall overlays.
 - Creating interactive rainfall distribution maps.
 
-## Quick Start
+## Quick Installation Instructions
 
-To run the complete application (both the FastAPI backend and the React frontend), you can use the following startup scripts:
+Install prerequisite software:
+```
+sudo apt install npm
+```
+Clone the repository and make startup script executable:
+```
+git clone https://github.com/toddhy/Hawaii-Climate-Data-internship.git
+cd Hawaii-Climate-Data-internship/
+chmod +x start_app.sh
+```
+Optional but highly recommended, create python venv and switch to it before installing python modules. It may give you instructions to install correct version of venv for you if not installed:
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+Install python packages:
+```
+pip install -r requirements.txt
+```
+Install node packages:
+```
+npm install
+```
 
-- **Windows**: Double-click `start_app.cmd` or run `.\start_app.ps1` from PowerShell.
-- **Linux / macOS**: Run `./start_app.sh` from your terminal.
+## Troubleshooting ##
 
-The script will handle dependency checks (e.g., `node_modules`, `.venv`), start both the backend and frontend servers, and ensure they are properly terminated when closed.
+Upgrade node version:
+```
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node -v  # Should show v22.x.x
+```
+
 
 ## Maintenance and Deployment
 
 - **Deployment**: Use `./deploy.sh` to automate the deployment process to a remote server (e.g., Nginx setup).
-- **Data Synchronization**: Use `./sync.sh` to synchronize the local research corpus and TileDB database with remote sources.
 
 ## Useful Links
 - [Database files](https://drive.google.com/file/d/1ziKvCJKqoPZUaJnIzUN4bQwdcNVA-fDu/view?usp=sharing)
