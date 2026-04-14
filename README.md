@@ -4,11 +4,10 @@ Analyzing data from the Hawaii Climate Data Portal.
 ## Project Highlights
 
 ### Gemini Chatbot Automation
-We've integrated a Gemini 2.0 Flash powered chatbot that can:
+We've integrated a Gemini 3.1 Flash powered chatbot that can:
 - **Execute Local Scripts**: Trigger data fetching and mapping directly from natural language.
 - **Inferred Geolocation**: Understand place names (like "Honolulu") and automatically provide coordinates to data scripts.
 - **Intelligent Defaults**: Automatically applies a **5.0 km radius** and the **current year (2026)** to map requests if not specified.
-- **Batch Processing**: Handle complex workflows like "fetch data for Hilo and then map it".
 
 For a detailed breakdown of the agent's tools and the underlying technical architecture, see [AGENT_TOOLS.md](file:///c:/SCIPE/HCDP-data-for-AI/gemini_chat/AGENT_TOOLS.md).
 
@@ -26,9 +25,6 @@ A centralized storage layer in `database/` that:
 - **Scalable**: Efficiently manages ~11GB of raster data with optimized Zstd (TileDB) and LZW (TIFF) compression.
 - **Robust NoData Handling**: Implements automated masking of legacy fill values (e.g., -9999.0) and extreme float values, ensuring all aggregations (mean, sum) are statistically accurate.
 - **Memory-Efficient**: Optimized for large-scale map generation using an incremental 2D accumulation strategy to handle decades of data without exhausting system RAM.
-
-> [!NOTE]
-> For information on slight differences between gridded (TIFF) data and station observations, see [database/DATA_DISCREPANCY.md](database/DATA_DISCREPANCY.md).
 
 ### HCDP API Tools
 A suite of tools located in `HCDP_API/` for:
@@ -50,7 +46,6 @@ The script will handle dependency checks (e.g., `node_modules`, `.venv`), start 
 ## Maintenance and Deployment
 
 - **Deployment**: Use `./deploy.sh` to automate the deployment process to a remote server (e.g., Nginx setup).
-- **Data Synchronization**: Use `./sync.sh` to synchronize the local research corpus and TileDB database with remote sources.
 
 ## Useful Links
 - [Database files](https://drive.google.com/file/d/1ziKvCJKqoPZUaJnIzUN4bQwdcNVA-fDu/view?usp=sharing)
