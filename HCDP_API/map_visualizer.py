@@ -40,7 +40,7 @@ try:
     from .station_finder import get_nearby_stations
 except ImportError:
     from station_finder import get_nearby_stations
-from database.tiledb_access import get_raster_for_date_range
+
 
 # --- Configuration ---
 DEFAULT_JSON = "station_rainfall_data.json"
@@ -198,6 +198,9 @@ def process_tiledb(data_type, start_date=None, end_date=None, array_uri=None):
     """
     Aggregates data from TileDB and returns data + metadata for overlay.
     """
+    # Deferred import to prevent 'Illegal Instruction' crash on systems without AVX
+    from database.tiledb_access import get_raster_for_date_range
+
     if array_uri is None:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(script_dir)
