@@ -17,7 +17,7 @@ graph TD
     end
     subgraph "🤖 AI Agent (LangChain)<br/>"
         Agent["<b>LangChain Agent</b><br/>(langchain_agent.py)"]
-        LLM["<b>Gemini 2.0 Flash</b>"]
+        LLM["<b>Gemini 3.1 Flash</b>"]
     end
     subgraph "🔧 Tools & Utilities (HCDP API)<br/>"
         Finder["<b>Station Finder</b>"]
@@ -71,6 +71,6 @@ graph TD
 
 1.  **React Frontend**: Provides a premium chat interface where users can ask natural language questions. It displays the assistant's text responses and renders generated interactive maps in an iframe.
 2.  **FastAPI Backend**: Acts as the bridge between the frontend and the AI. It manages conversation sessions, serves generated HTML from a dedicated `outputs/` directory, and orchestrates an automated **Cleanup Manager** to prune stale files.
-3.  **LangChain Agent**: The "brain" of the application. It uses Gemini 2.0 Flash to understand intent and decides which local tools to call (geocoding, data querying, mapping, or climatogram generation).
+3.  **LangChain Agent**: The "brain" of the application. It uses Gemini 3.1 Flash to understand intent and decides which local tools to call (geocoding, data querying, mapping, or climatogram generation).
 4.  **HCDP API Tools**: Specialized Python scripts for coordinate resolution, spatial searches, precision climate data querying, and visual generation (Leaflet/Folium maps and Plotly climatograms).
 5.  **TileDB Data Layer**: A high-performance spatial database storing over 30 years of monthly climate data. It is now optimized with **LZW/Zstd compression**, reducing the footprint from ~25GB to **~11GB** while maintaining sub-second query performance.
