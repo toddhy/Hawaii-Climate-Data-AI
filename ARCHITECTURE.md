@@ -30,9 +30,7 @@ graph TD
     end
     UI --> Client
     Client -- "<b>POST /chat</b>" --> Srv
-    Srv --> DB_Sess
     Srv -- "<b>Invoke</b>" --> Agent
-    Srv -- "<b>Triggers</b>" --> Cleanup
     Agent -- "<b>Prompts</b>" --> LLM
     Agent -- "<b>Calls</b>" --> Finder
     Agent -- "<b>Calls</b>" --> Mapper
